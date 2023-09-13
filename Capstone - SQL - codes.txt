@@ -1,0 +1,368 @@
+--1.How many customers do we have in the data?--
+/*
+SELECT * 
+FROM customers
+ 795 */
+
+=SELECT
+	COUNT(DISTINCT customer_id)
+FROM customers
+
+--2.What was the city with the most profit for the company in 2015?--
+/* 
+SELECT 
+	SUM(order_profits) as profit, 
+	shipping_city
+FROM orders as o
+JOIN order_details as od
+  ON o.order_id = od.order_id
+WHERE EXTRACT (YEAR FROM order_date) = '2015'
+GROUP BY shipping_city
+ORDER BY profit DESC 
+14753, New York City */
+==or WHERE date_part('year',order_date)='2015'
+
+
+ --3.In 2015, what was the most profitable city's profit?
+see nr.2 
+
+==SELECT
+     MAX(order_profits) as profit,
+     shipping_city
+FROM orders as o
+JOIN order_details as od
+  ON o.order_id = od.order_id
+WHERE EXTRACT (YEAR FROM order_date) = '2015' AND shipping_city = 'New York City'
+GROUP BY shipping_city
+ORDER BY profit;
+
+
+
+--4.How many different cities do we have in the data?
+/*
+SELECT 
+    COUNT(DISTINCT shipping_city) as cities
+FROM orders; 
+531*/
+
+
+--5.Show the total spent by customers from low to high.
+/*
+ SELECT 
+    SUM(order_sales) as total_spent, 
+    c.customer_id
+FROM customers c
+JOIN orders o
+  ON c.customer_id = o.customer_id
+JOIN order_details od
+  ON o.order_id = od.order_id
+GROUP BY c.customer_id
+ORDER BY total_spent ASC;*/
+
+
+--6.What is the most profitable city in the State of Tennessee?
+/*
+SELECT shipping_city, 
+    SUM(order_profits) as max
+FROM orders o
+JOIN order_details od
+  ON o.order_id = od.order_id
+WHERE shipping_state = 'Tennessee'
+GROUP BY shipping_city
+ORDER BY max DESC 
+LIMIT 1*/
+
+--7.What’s the average annual profit for that city across all years?
+/*
+SELECT 
+    ROUND(AVG(order_profits),2) as average_profit,
+    shipping_city
+FROM orders o
+JOIN order_details od
+  ON o.order_id = od.order_id
+WHERE shipping_city = 'Lebanon'
+GROUP BY shipping_city; 27,67 */
+
+
+--8.What is the distribution of customer types in the data?
+/*
+SELECT
+    COUNT(customer_segment) as customer_count,
+    customer_segment
+FROM customers
+GROUP BY customer_segment;
+410 - Consumer
+237 - Corporate
+148 - Home Office */
+
+==or SELECT customer_segment,
+    COUNT(DISTINCT customer_id) as cnt
+FROM customers
+GROUP BY customer_segment
+
+
+--9.What’s the most profitable product category on average in Iowa across all years?
+/*
+SELECT 
+    ROUND(AVG(order_profits),2) as average_profit,
+    product_category,
+    shipping_state
+FROM orders o
+JOIN order_details od
+  ON o.order_id = od.order_id 
+JOIN product p
+  ON od.product_id = p.product_id
+WHERE shipping_state = 'Iowa'
+GROUP BY product_category, shipping_state
+ORDER BY average_profit DESC;
+130.25 - furniture */
+
+--10.What is the most popular product in that category across all states in 2016?
+	SELECT product_name,
+		SUM(quantity) as amount_of_items
+	FROM order_details od
+	JOIN orders o
+	  ON  o.order_id = od.order_id 
+	JOIN product p
+  	  ON od.product_id = p.product_id
+	WHERE date_part('year',order_date)='2016' AND 
+			product_category = 'Furniture'
+	GROUP BY product_name
+	ORDER BY amount_of_items DESC;
+
+
+--11.Which customer got the most discount in the data? (in total amount)
+/*SELECT c.customer_id,
+    SUM(order_sales/(1-order_discount)- order_sales) as discount_amount
+FROM customers c
+JOIN orders o
+  ON c.customer_id = o.customer_id
+JOIN order_details od
+  ON o.order_id = od.order_id
+GROUP BY c.customer_id
+ORDER BY discount_amount DESC;
+687 */
+
+--12.How widely did monthly profits vary in 2018?
+WITH monthly_profits AS (
+    SELECT
+        EXTRACT(MONTH FROM order_date) as month,
+        SUM(order_profits) as profit
+    FROM orders o
+    JOIN order_details od
+        ON o.order_id = od.order_id
+    WHERE date_part('year', order_date) = '2018'
+    GROUP BY month
+    ORDER BY month
+),
+monthly_profits_lagged AS (
+    SELECT
+        month,
+        profit,
+        LAG(profit) OVER (ORDER BY month) AS lagged_profit
+    FROM monthly_profits
+)
+SELECT
+    month,
+    profit,
+    CASE
+        WHEN lagged_profit IS NULL THEN 0
+        ELSE profit - lagged_profit
+    END AS profit_change
+FROM monthly_profits_lagged;
+
+==OR
+WITH cte AS(
+SELECT to_char(order_date,'MM-YYYY') AS month,
+	SUM(order_profits) AS month_total
+FROM order_details od
+JOIN orders o
+  ON o.order_id=od.order_id
+WHERE date_part('year',order_date) = '2018'
+GROUP BY 1
+ORDER BY 1
+)
+SELECT *,
+	(month_total-LAG(month_total,1,0) OVER() ) AS month_diff
+FROM cte
+
+
+--13.Which order was the highest in 2015?
+SELECT od.order_id,
+    SUM(order_sales) AS order_price
+FROM order_details od
+JOIN orders o
+  ON od.order_id = o.order_id
+WHERE EXTRACT (YEAR FROM order_date) = '2015'
+GROUP BY od.order_id
+ORDER BY order_price DESC;
+
+
+--14.What was the rank of each city in the East region in 2015?
+SELECT DISTINCT shipping_city AS city,
+    SUM(od.quantity) as amount,
+    ROW_NUMBER() OVER (ORDER BY sum(od.quantity) DESC) as rank
+FROM orders o
+JOIN order_details od
+  ON o.order_id = od.order_id
+WHERE EXTRACT (YEAR FROM order_date) = '2015' and shipping_region = 'East'
+GROUP BY city
+ORDER BY rank, amount DESC;
+
+
+--15.Display customer names for customers who are in the 
+--segment ‘Consumer’ or ‘Corporate.’How many customers are there in total?
+SELECT COUNT(DISTINCT customer_id) AS total
+FROM customers
+WHERE customer_segment IN ('Consumer','Corporate');
+
+
+
+--16.Calculate the difference between the largest and smallest 
+--order quantities for product id ‘100.’
+SELECT 
+      MAX(quantity) - MIN(quantity) as diff
+FROM product p
+JOIN order_details od
+  ON p.product_id = od.product_id
+WHERE p.product_id IN ('100');
+
+
+--17.Calculate the percent of products that are within 
+--the category ‘Furniture.’ 
+SELECT product_category,
+      COUNT(*)*100.0/(SELECT COUNT(*)FROM product) AS percentage
+FROM product
+WHERE product_category = 'Furniture'
+GROUP BY product_category;
+
+==OR
+SELECT(SELECT COUNT(*)
+	FROM product
+	WHERE product_category = 'Furniture')::float
+	/
+	(SELECT COUNT(*)
+	FROM product)::float
+
+
+--18.Display the number of duplicate products based on their product manufacturer.
+--Example: A product with an identical product manufacturer can be considered
+-- a duplicate.
+SELECT product_manufacturer,
+      COUNT(*) AS duplicates
+FROM product
+GROUP BY product_manufacturer;
+
+
+
+--19.Show the product_subcategory and 
+--the total number of products in the subcategory.
+--Show the order from most to least products and 
+--then by product_subcategory name ascending.
+SELECT product_subcategory,
+      COUNT(*) AS total
+FROM product
+GROUP BY product_subcategory
+ORDER BY total DESC, product_subcategory;
+
+
+--20.Show the product_id(s), the sum of quantities,
+-- where the total sum of its product
+--quantities is greater than or equal to 100.
+SELECT product_id,
+      SUM(quantity) as total
+FROM order_details
+WHERE quantity >= '100'
+GROUP BY product_id;
+
+
+--Bonus question:
+--Join all database tables into one dataset that 
+--includes all unique columns and download it as a .csv file.
+
+  SELECT c.customer_id,
+        c.customer_name, 
+        c.customer_segment,
+        o.order_id,
+        o.order_date,
+        o.shipping_city, 
+        o.shipping_state,
+        o.shipping_region,
+        o.shipping_country,
+        o.shipping_postal_code,
+        o.shipping_date, 
+        o.shipping_mode, 
+        od.order_details_id, 
+        od.product_id, 
+        od.quantity,
+        od.order_discount,
+        od.order_profits,
+        od.order_profit_ratio,
+        od.order_sales,
+        p.product_name,
+        p.product_category,
+        p.product_subcategory,
+        p.product_manufacturer
+  FROM customers c
+  JOIN orders o
+    ON c.customer_id = o.customer_id
+  JOIN order_details od
+    ON o.order_id = od.order_id
+  JOIN product p
+    ON od.product_id = p.product_id;
+
+
+***
+--In one query, what were the most and least profitable products normalized over order?
+--Hint: one way to normalize is with averages.
+
+/*SELECT AVG(order_profits) as average,
+    product_name
+FROM order_details od
+JOIN product p
+  ON od.product_id = p.product_id
+GROUP BY product_name
+ORDER BY average desc
+limit 1*/
+
+(SELECT
+    p.product_name,
+    AVG(od.order_profits) as profits
+FROM
+    order_details od
+    JOIN product p USING(product_id)
+GROUP BY
+    1
+ORDER BY
+    2 DESC
+LIMIT 1)
+
+UNION ALL 
+
+(SELECT
+    p.product_name,
+    AVG(od.order_profits) as profits
+FROM
+    order_details od
+    JOIN product p USING(product_id)
+GROUP BY 1
+ORDER BY 2
+LIMIT 1
+)
+
+/*WITH t1 AS (SELECT product_name, 
+       AVG(order_profits) AS average
+FROM order_details od 
+JOIN product p 
+ON od.product_id = p.product_id
+GROUP BY 1)
+
+SELECT
+    product_name,
+    average
+FROM t1
+WHERE
+    average IN ((SELECT MAX(average) FROM t1), (SELECT MIN(average) FROM t1))
+*/
+
+
