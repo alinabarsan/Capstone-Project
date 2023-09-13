@@ -1,0 +1,135 @@
+1.What was the city with the highest sales?
+-New York
+
+2.What is the average discount given for all orders?
+=AVERAGE(N2:N9995) = 15.62%
+
+3.What is the most popular product among customers 
+in the "Consumer" segment?
+pivot table 
+-staple envelope 29
+
+4.What is the total profit made for the 
+"Office Supplies" category?
+$122,474
+
+5.1. Who is the customer who has made the most purchases? 
+(Hint: use the “Order ID column to answer the question.)
+William Brown
+
+6.What state made the most profit?
+California
+
+7.How many orders were shipped via "Standard Class" 
+ship mode?
+5968
+
+8.Which region had the highest sales in the month of June?
+West
+
+9.Calculate the price per unit of each product (before discounts), and put it in a separate column. What's the most expensive product?
+ Hint: use the quantity, sales, and discount columns.
+--original price =(R2/(1-O2)/D2)
+-Cisco TelePresence System EX90 Videoconferencing Unit
+
+10.Create a pivot table that shows the total sales for each manufacturer and category combination. In the "Technology" category, which manufacturer had the second highest sales?
+-Canon
+
+11.1. Create a new column that calculates the profit margin for each order (hint: profit/sales)
+-average of profit margin column = 12.01%
+
+
+12.Use a VLOOKUP function to create a new column that shows the product sub-category for each product based on the separate sub-category sheet.
+What is the subcategory of “Xerox 1887”?
+-=VLOOKUP(A2,'Sub categories'!A:C,3,FALSE)
+
+
+13.Create a new column that calculates the number of days between the order date and the ship date for each order. 
+Create a conditional formatting “color scale” for this column, from greenish to reddish.
+What is the number of days for order id - “CA-2015-100363”?
+=days(m2,a2)
+-5
+
+
+14.Use the INDEX and MATCH functions to create a new column that shows the shipping cost for each order based on the separate shipping prices sheet. Assume that quantity or weight doesn’t matter.
+What is the shipping price for order id “CA-2015-100678”?
+--=INDEX(shipping_prices!A:F,MATCH(J2,shipping_prices!A:A,0),MATCH(N2,shipping_prices!1:1,0))
+-11.99
+
+
+15.Create a new column that concatenates the customer name, city, and state into a single string for each order.
+Select the correct result for CA-2015-100090
+--==CONCATENATE(E2," ", J2," ", K2)
+
+
+16.Use the IFS function to create a new column that categorizes each order as "High," "Low," or "Loss" based on profit and sales criteria.
+"High" consider as:
+   - If sales are above 200 and profit is above 20
+    - If profit is above 40.
+Else:
+	If the profit is equal or below 0 this is categorized as “Loss”
+	Any other case this is categorized as "Low"
+Use conditional formatting to color the columns with the values “High” in green and the value “Loss” in red.**
+How many “Loss” do you have?
+--=IFS(AND(R2>200,P2>20),"High",P2>40,"High",P2<=0,"Loss",TRUE,"Low")
+-Loss - 2029
+
+
+17.In a new sheet, create a dropdown of category and product which returns the price for a unit (which you previously solved in exercise 9.)
+Hint:
+
+	1.In order to make your job easier and for it to look cleaner, you should first define "named ranges" for every column you will use - product name, category, unit price.
+	2.Create a drop-down list of categories:
+--In a separate cell, use data validation to create a drop-down list of categories, using the category column in your data as the source.
+--In the data validation criteria, use “Dropdown (from a range)” and put the named range of your category column in there.
+	3.In a separate sheet, use the “filter” function to filter the products based on your chosen category. Give this a named range too.
+
+--=FILTER(product_name,category='Dropdown list'!A2)--
+
+	4.Create a drop-down list of product names based on the selected category; use this name range you have created in the separate sheet.
+	5.Use the INDEX MATCH function to find the corresponding product unit price. You could use this structure:
+=INDEX(unit_price, MATCH(1, (category=The_category_cell)*(product_name=The_product_cell), 0), 1)
+Note: Unit_price, category, and product_name are named ranges.
+--4.83
+
+
+BONUS QUESTION
+1.Use a combination of functions and conditional formatting to create a dashboard that visualizes the total sales, profit, and average discount for each region.
+2.Create a new sheet that uses a formula to calculate the monthly sales, profit, and profit margin for each category and sub-category. Use a chart to visualize the results.
+3.Open a new tab in your Spreadsheet tool and create a table that is filtered dynamically by year.
+4.Use your filtered table to create a “Profit per year” dashboard. In that dashboard, you can choose a year, and all the data should change dynamically. Your dashboard should contain at least the following:
+	--A histogram of the profit column with a bucket size of 20 and an outlier percentile of 5% and/or a chart that shows the profit over the months (you could do a line chart or a waterfall chart).
+
+	--Note: the months should be placed in the correct order!
+	1.Top five profitable subcategories
+	2. Bottom five profitable subcategories
+	3. Top 10 profitable customers
+	4. Bottom ten profitable customers.
+In addition to the charts, your dashboard should include the following numbers (which should change dynamically by year) , these are:
+	Sum of positive profit
+	Sum of negative profit
+	Number of distinct orders
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
