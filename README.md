@@ -13,3 +13,6 @@ They already have a small data analytics team but want to expand it significantl
 They see me as a candidate for a DA position and provide me with a sample dataset from their sales data.
 
 My task is to analyze the data, find interesting insights, and identify weak areas and opportunities for Unicorn to boost business growth.
+
+Link to Tableau Story: 
+https://public.tableau.com/views/Capstone_16785495661830/Story1?:language=en-GB&:display_count=n&:origin=viz_share_link
